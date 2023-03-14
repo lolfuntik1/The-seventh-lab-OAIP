@@ -1,19 +1,7 @@
 /*
-    * by Danya Kry
-    * v 1.0
- 
-### Задание:
- 
- 7. Написать программу обработки файла записей, содержащую следующие пункты меню: «Создание», «Просмотр», «Добавление», «Решение индивидуального задания».
- Каждая запись должна содержать следующую информацию о студентах:
- – фамилия;
- – номер группы;
- – оценки за семестр: по физике, математике, информатике;
- – средний балл.
-     Организовать ввод исходных данных, средний балл рассчитать по введенным оценкам.
- Содержимое всего файла и результаты решения индивидуального задания записать в текстовый файл.
-
- 7.1.8. Вычислить общий средний балл всех студентов и распечатать список студентов со средним баллом выше общего среднего балла
+     ** by Danya Kry
+     ** v 2.0
+     ** https://vk.com/lol_funtik
 */
 
 #include <iostream>     // для cout и cin
@@ -31,22 +19,28 @@ struct Student {    // информация о студенте
     float avgGrade;
 };
 
-string openFile();  // открыть файл
+/* ************************************ */
+string openFile();
 void loadOutFile(Student [], int&, string);   // загрузить записи из файла в массив
-void delFile();     // удалить файл
+void delFile();
 
 void addStudent(Student [], int&);
 void viewStudents(Student [], int);
 void solveTask(Student [], int);
-// editStudents;
 void saveToFile(Student [], int, string);
+void editStudents(Student [], int);
+
+void nullCount();
+/* ************************************ */
 
 int main() {
     Student students[100];
     int count = 0;
     int choice;
     string fileName;
-    system("open .");
+    
+    system("open ."); // DEBUG
+    
     do {
         cout << endl;
         cout << "1. Open file" << endl;
@@ -65,8 +59,9 @@ int main() {
                     cout << "2. View students" << endl;
                     cout << "3. Solve task" << endl;
                     cout << "4. Save to file" << endl;
-                    cout << "5. Reaf from file" << endl;
-                    cout << "6. Exit" << endl;
+                    cout << "5. Read from file" << endl;
+                    cout << "6. Edit the student" << endl;
+                    cout << "7. Exit" << endl;
 
                     cout << "Enter your choice: ";
                     cin >> choice;
@@ -77,15 +72,27 @@ int main() {
                             break;
                             
                         case 2:
-                            viewStudents(students, count);
+                            if (count == 0) {
+                                nullCount();
+                            } else {
+                                viewStudents(students, count);
+                            }
                             break;
                             
                         case 3:
-                            solveTask(students, count);
+                            if (count == 0) {
+                                nullCount();
+                            } else {
+                                solveTask(students, count);
+                            }
                             break;
                             
                         case 4:
-                            saveToFile(students, count, fileName);
+                            if (count == 0) {
+                                nullCount();
+                            } else {
+                                saveToFile(students, count, fileName);
+                            }
                             break;
                             
                         case 5:
@@ -93,6 +100,14 @@ int main() {
                             break;
                             
                         case 6:
+                            if (count == 0) {
+                                nullCount();
+                            } else {
+                                editStudents(students, count);
+                            }
+                            break;
+                            
+                        case 7:
                             cout << "Exiting program..." << endl;
                             break;
 
@@ -100,7 +115,7 @@ int main() {
                             cout << "Invalid choice. Try again." << endl;
                             break;
                     }
-                } while (choice != 6);
+                } while (choice != 7);
                 break;
                 
             case 2:
@@ -130,11 +145,11 @@ string openFile() {
     fstream file(fileName, ios_base::app);
     
     if (!file.is_open()) {
-        cout << "# error #" << endl;
-        return 0;
+        cout << "**** file opening error ****" << endl;
+        perror("open the file");
     }
     
-    cout << "File with name " << fileName << " created." << endl;
+    cout << "File with name " << fileName << " opened successfully." << endl;
     file.close();
     
     return fileName;
@@ -147,7 +162,7 @@ void delFile() {
     cin >> fileName;
     
     if (remove(fileName) == 0) {
-        cout << "File removed." << endl;
+        cout << "File is removed successfully." << endl;
     } else {
         perror("remove");
     }
@@ -155,6 +170,12 @@ void delFile() {
 
 void loadOutFile(Student students[], int& count, string fileName) {
     ifstream fin(fileName);
+    
+    if (!fin.is_open()) {
+        cout << "**** file opening error ****" << endl;
+        return;
+    }
+    
     string line;
     
     while (getline(fin, line)) {
@@ -182,6 +203,8 @@ void loadOutFile(Student students[], int& count, string fileName) {
     }
 
     fin.close();
+    
+    cout << "Successfully." << endl;
 }
 
 void addStudent(Student students[], int& count) {
@@ -203,11 +226,13 @@ void addStudent(Student students[], int& count) {
     students[count].avgGrade = (students[count].physicsGrade + students[count].mathGrade + students[count].csGrade) / 3.0;
 
     count++;
+    
+    cout << "Successfully." << endl;
 }
 
 void viewStudents(Student students[], int count) {
     for (int i = 0; i < count; i++) {
-        cout << "# " << count << endl;
+        cout << "# " << i+1 << endl;
         cout << "Surname: " << students[i].surname << endl;
         cout << "Group number: " << students[i].groupNumber << endl;
         cout << "Physics grade: " << students[i].physicsGrade << endl;
@@ -217,9 +242,10 @@ void viewStudents(Student students[], int count) {
     }
 }
 
+// Вычислить общий средний балл всех студентов и распечатать список студентов со средним баллом выше общего среднего балла
 void solveTask(Student students[], int count) {
-    // Вычислить общий средний балл всех студентов и распечатать список студентов со средним баллом выше общего среднего балла
-    double generalAvgGrade = 0.0;
+    double generalAvgGrade = 0.0;   // общий средний бал
+    
     for (int i = 0; i < count; i++) {
         for (int i = 0; i < count; i++) {
             generalAvgGrade += students[i].avgGrade;
@@ -228,8 +254,8 @@ void solveTask(Student students[], int count) {
         generalAvgGrade /= count;
         
         if (students[i].avgGrade > generalAvgGrade) {
-            cout << students[i].surname << endl;
-            cout << students[i].groupNumber << endl << endl;
+            cout << "Surname: " << students[i].surname << endl;
+            cout << "Group number: " << students[i].groupNumber << endl << endl;
         }
     }
 }
@@ -238,7 +264,7 @@ void saveToFile(Student students[], int count, string fileName) {
     ofstream fout(fileName);
     
     if (!fout.is_open()) {
-        cout << "# error #" << endl;
+        cout << "**** file opening error ****" << endl;
         return;
     }
     
@@ -253,4 +279,46 @@ void saveToFile(Student students[], int count, string fileName) {
     }
 
     fout.close();
+    
+    cout << "Successfully." << endl;
+}
+
+void editStudents(Student students[], int count) {
+    string findName;
+    
+    cout << "Enter surname: ";
+    cin >> findName;
+    
+    for (int i = 0; i < count; i++) {
+        if (findName == students[i].surname) {
+            cout << "It is okay." << endl;
+            
+            cout << "Enter student surname: ";
+            cin >> students[i].surname;
+            
+            cout << "Enter student group number: ";
+            cin >> students[i].groupNumber;
+
+            cout << "Enter student physics grade: ";
+            cin >> students[i].physicsGrade;
+
+            cout << "Enter student math grade: ";
+            cin >> students[i].mathGrade;
+
+            cout << "Enter student CS grade: ";
+            cin >> students[i].csGrade;
+
+            students[i].avgGrade = (students[i].physicsGrade + students[i].mathGrade + students[i].csGrade) / 3.0;
+            
+            cout << "Successfully." << endl;
+            
+            return;
+        }
+    }
+    
+    cout << "Couldn't find a student with that name :(" << endl;
+}
+
+void nullCount() {
+    cout << "* I can't do it because there are 0 students loaded." << endl;
 }
